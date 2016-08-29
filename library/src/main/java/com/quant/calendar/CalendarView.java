@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -56,6 +57,7 @@ public class CalendarView extends View {
         textPaint=new TextPaint(Paint.ANTI_ALIAS_FLAG);
         calendarItem=new CalendarDay(System.currentTimeMillis());
         calendar=new GregorianCalendar();
+        calendar.setFirstDayOfWeek(calendar.MONDAY);
         calendar.set(calendarItem.year,calendarItem.month,0);
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CalendarView);
@@ -65,9 +67,34 @@ public class CalendarView extends View {
         setItemTextSize(a.getDimensionPixelSize(R.styleable.CalendarView_cv_itemTextSize, 0));
         setItemWeekColor(a.getColor(R.styleable.CalendarView_cv_itemWeekColor, Color.DKGRAY));
         setItemDivideColor(a.getColor(R.styleable.CalendarView_cv_itemDivideColor, Color.DKGRAY));
-        setItemDivideSize(a.getDimension(R.styleable.CalendarView_cv_itemDivideSize,0));
+        setItemDivideSize(a.getDimension(R.styleable.CalendarView_cv_itemDivideSize, 0));
         setDivideGravity(a.getInt(R.styleable.CalendarView_cv_divideGravity, LEFT));
         a.recycle();
+
+        GregorianCalendar gc = new GregorianCalendar();
+        System.out.println( gc.getActualMinimum(gc.DAY_OF_WEEK) );
+        gc.setFirstDayOfWeek(gc.MONDAY);
+        gc.set(gc.YEAR, 2016);
+        gc.set(gc.MONTH,7-1);
+        gc.set(gc.DATE, 1);
+        int max = gc.getActualMaximum(gc.DAY_OF_MONTH);  //本月最大日
+
+        System.out.println( max );
+        for(int i=0; i<max; i++) {
+            Log.e(TAG, gc.get(gc.DAY_OF_MONTH) + "号, 星期" + WEEK_DAY[gc.get(Calendar.DAY_OF_WEEK)-1] );
+            gc.add(gc.DAY_OF_MONTH, 1);
+        }
+    }
+
+    static String week(int i) {
+        if(i==GregorianCalendar.MONDAY) return "一";
+        if(i==GregorianCalendar.TUESDAY) return "二";
+        if(i==GregorianCalendar.WEDNESDAY) return "三";
+        if(i==GregorianCalendar.THURSDAY) return "四";
+        if(i==GregorianCalendar.FRIDAY) return "五";
+        if(i==GregorianCalendar.SATURDAY) return "六";
+        if(i==GregorianCalendar.SUNDAY) return "日";
+        throw new RuntimeException("非法的星期数:" + i);
     }
 
     public void setItemDivideSize(float size) {
@@ -155,7 +182,8 @@ public class CalendarView extends View {
         int previousDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
         calendar.add(Calendar.MONTH, 1);
 
-        calendar.add(GregorianCalendar.MONTH,-1);
+        Log.e(TAG, calendar.get(Calendar.MONTH)+" cur:" + currentDays + " previous:" + previousDays);
+
         int itemWidth=getWidth()/WEEK_DAY_COUNT;
         int total=WEEK_DAY_COUNT*totalColumn;
         canvas.drawRect(new Rect(0, 0, itemWidth, itemHeight), dividePaint);

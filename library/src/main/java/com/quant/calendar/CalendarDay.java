@@ -1,6 +1,7 @@
 package com.quant.calendar;
 
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 /**
  * Created by cz on 16/8/29.
@@ -15,10 +16,10 @@ public class CalendarDay implements Cloneable {
     }
 
     public CalendarDay(long timeMillis) {
-        Calendar calendar = Calendar.getInstance();
+        GregorianCalendar calendar = new GregorianCalendar();
         calendar.setTimeInMillis(timeMillis);
         year = calendar.get(Calendar.YEAR);
-        month = calendar.get(Calendar.MONTH)-1;
+        month = calendar.get(Calendar.MONTH);
         day = calendar.get(Calendar.DAY_OF_MONTH);
     }
 
