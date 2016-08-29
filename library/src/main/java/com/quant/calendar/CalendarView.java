@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.text.TextPaint;
@@ -15,7 +16,6 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 
 /**
  * Created by cz on 8/29/16.
@@ -23,6 +23,7 @@ import java.util.GregorianCalendar;
 public class CalendarView extends View {
     private static final String TAG = "CalendarView";
     private static final int WEEK_DAY_COUNT=7;
+    private static final int AUTO_ITEM_HEIGHT=0;
     public static final int LEFT=0x01;
     public static final int TOP=0x02;
     public static final int RIGHT=0x04;
@@ -31,16 +32,21 @@ public class CalendarView extends View {
     @IntDef(value={LEFT,TOP,RIGHT,BOTTOM})
     public @interface Gravity{
     }
-
     private final int[] WEEK_DAY=new int[]{7,1,2,3,4,5,6};
-    private final GregorianCalendar calendar;
+    private final Calendar calendar;
     private final Paint dividePaint;
     private final TextPaint textPaint;
-    private CalendarDay calendarItem;
+    private CalendarDay calendarDay;
     private int divideGravity;
+    private int weekTextColor;
+    private int selectTextColor;
+    private int textDisableColor;
+    private int textColor;
     private float divideSize;
     private int itemHeight;
     private final Rect textRect;
+    private RectF touchRect;
+    private int selectPosition;
 
     public CalendarView(Context context) {
         this(context, null, 0);
@@ -55,57 +61,40 @@ public class CalendarView extends View {
         textRect = new Rect();
         dividePaint=new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint=new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        calendarItem=new CalendarDay(System.currentTimeMillis());
-        calendar=new GregorianCalendar();
+        calendarDay =new CalendarDay(System.currentTimeMillis());
+        calendar=Calendar.getInstance();
         calendar.setFirstDayOfWeek(calendar.MONDAY);
-        calendar.set(calendarItem.year,calendarItem.month,0);
+        calendar.set(calendarDay.year, calendarDay.month,1);
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CalendarView);
         setItemSelectDrawable(a.getDrawable(R.styleable.CalendarView_cv_itemSelectDrawable));
-        setItemHeight((int) a.getDimension(R.styleable.CalendarView_cv_itemHeight, 0));
+        setItemHeight(a.getLayoutDimension(R.styleable.CalendarView_cv_itemHeight, "cv_itemHeight"));
         setItemTextColor(a.getColor(R.styleable.CalendarView_cv_itemTextColor, Color.BLACK));
         setItemTextSize(a.getDimensionPixelSize(R.styleable.CalendarView_cv_itemTextSize, 0));
         setItemWeekColor(a.getColor(R.styleable.CalendarView_cv_itemWeekColor, Color.DKGRAY));
+        setItemSelectColor(a.getColor(R.styleable.CalendarView_cv_itemSelectColor,Color.WHITE));
+        setItemDisableColor(a.getColor(R.styleable.CalendarView_cv_itemDisableColor,Color.GRAY));
         setItemDivideColor(a.getColor(R.styleable.CalendarView_cv_itemDivideColor, Color.DKGRAY));
         setItemDivideSize(a.getDimension(R.styleable.CalendarView_cv_itemDivideSize, 0));
-        setDivideGravity(a.getInt(R.styleable.CalendarView_cv_divideGravity, LEFT));
+        setDivideGravityInner(a.getInt(R.styleable.CalendarView_cv_divideGravity, LEFT));
         a.recycle();
-
-        GregorianCalendar gc = new GregorianCalendar();
-        System.out.println( gc.getActualMinimum(gc.DAY_OF_WEEK) );
-        gc.setFirstDayOfWeek(gc.MONDAY);
-        gc.set(gc.YEAR, 2016);
-        gc.set(gc.MONTH,7-1);
-        gc.set(gc.DATE, 1);
-        int max = gc.getActualMaximum(gc.DAY_OF_MONTH);  //本月最大日
-
-        System.out.println( max );
-        for(int i=0; i<max; i++) {
-            Log.e(TAG, gc.get(gc.DAY_OF_MONTH) + "号, 星期" + WEEK_DAY[gc.get(Calendar.DAY_OF_WEEK)-1] );
-            gc.add(gc.DAY_OF_MONTH, 1);
-        }
     }
 
-    static String week(int i) {
-        if(i==GregorianCalendar.MONDAY) return "一";
-        if(i==GregorianCalendar.TUESDAY) return "二";
-        if(i==GregorianCalendar.WEDNESDAY) return "三";
-        if(i==GregorianCalendar.THURSDAY) return "四";
-        if(i==GregorianCalendar.FRIDAY) return "五";
-        if(i==GregorianCalendar.SATURDAY) return "六";
-        if(i==GregorianCalendar.SUNDAY) return "日";
-        throw new RuntimeException("非法的星期数:" + i);
-    }
+
 
     public void setItemDivideSize(float size) {
         this.dividePaint.setStrokeWidth(1);
         invalidate();
     }
 
+    public CalendarDay getCalendarDay(){
+        return calendarDay;
+    }
+
     public void setCalendarDay(CalendarDay day){
-        calendarItem=day;
-        calendar.set(day.year,day.month,0);
-        invalidate();
+        calendarDay =day;
+        calendar.set(day.year,day.month,1);
+        requestLayout();
     }
 
     public void setItemSelectDrawable(Drawable drawable) {
@@ -117,8 +106,18 @@ public class CalendarView extends View {
         requestLayout();
     }
 
+    public void setItemSelectColor(int color) {
+        this.selectTextColor =color;
+        invalidate();
+    }
+
     public void setItemTextColor(int color) {
-        this.textPaint.setColor(color);
+        this.textColor=color;
+        invalidate();
+    }
+
+    public void setItemDisableColor(int color) {
+        this.textDisableColor=color;
         invalidate();
     }
 
@@ -128,7 +127,8 @@ public class CalendarView extends View {
     }
 
     public void setItemWeekColor(int color) {
-
+        this.weekTextColor=color;
+        invalidate();
     }
 
     public void setItemDivideColor(int color) {
@@ -136,12 +136,12 @@ public class CalendarView extends View {
     }
 
     public void setDivideGravityInner(int gravity) {
-
-    }
-
-    public void setDivideGravity(int gravity) {
         this.divideGravity=gravity;
         invalidate();
+    }
+
+    public void setDivideGravity(@Gravity  int gravity) {
+        setDivideGravity(gravity);
     }
 
     @Override
@@ -158,11 +158,14 @@ public class CalendarView extends View {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int column = getCalendarColumn();
+        if(AUTO_ITEM_HEIGHT==itemHeight){
+            itemHeight=getMeasuredWidth()/WEEK_DAY_COUNT;
+        }
         setMeasuredDimension(getMeasuredWidth(), resolveSize(itemHeight*column, heightMeasureSpec));
     }
 
     private int getCalendarColumn() {
-        int totalDay= calendar.get(Calendar.DAY_OF_MONTH)+ calendar.get(Calendar.DAY_OF_WEEK);
+        int totalDay= calendar.getActualMaximum(Calendar.DAY_OF_MONTH)+ calendar.get(Calendar.DAY_OF_WEEK);
         return (0==totalDay%WEEK_DAY_COUNT)?totalDay/WEEK_DAY_COUNT:totalDay/WEEK_DAY_COUNT+1;
     }
 
@@ -170,44 +173,53 @@ public class CalendarView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         int column = getCalendarColumn();
-        drawCalendarText(canvas,column);
-
         drawDivide(canvas,column);
+        drawCalendarText(canvas,column);
     }
 
     private void drawCalendarText(Canvas canvas, int totalColumn) {
+        calendar.set(calendarDay.year, calendarDay.month,1);
         int startDay = WEEK_DAY[calendar.get(Calendar.DAY_OF_WEEK)-1];
         int currentDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        calendar.add(Calendar.MONTH, -1);
+        calendar.set(Calendar.MONTH,-1);
         int previousDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        calendar.add(Calendar.MONTH, 1);
-
-        Log.e(TAG, calendar.get(Calendar.MONTH)+" cur:" + currentDays + " previous:" + previousDays);
-
+        calendar.set(Calendar.MONTH,1);
         int itemWidth=getWidth()/WEEK_DAY_COUNT;
         int total=WEEK_DAY_COUNT*totalColumn;
-        canvas.drawRect(new Rect(0, 0, itemWidth, itemHeight), dividePaint);
 
-        for(int i=0;i<total;i++){
+        for(int i=1;i<=total;i++){
             String text;
-            if(i<startDay){
-                //previous month
-                text = String.valueOf(previousDays-startDay+i);
-            } else if(i>=startDay&&i<startDay+currentDays){
-                //current days
-                text = String.valueOf(i-startDay+1);
-            } else {
-                //next days
-                text = String.valueOf(i-startDay-currentDays);
-            }
-
-            int column=i/WEEK_DAY_COUNT;
-            int row=i%WEEK_DAY_COUNT;
+            int column=(i-1)/WEEK_DAY_COUNT;
+            int row=(i-1)%WEEK_DAY_COUNT;
             int startX=row*itemWidth;
             int startY=column*itemHeight;
 
+            if(i<startDay){
+                //previous month
+                textPaint.setColor(textDisableColor);
+                text = String.valueOf(previousDays-startDay+i+1);
+            } else if(i>=startDay&&i<startDay+currentDays){
+                //current days
+                text = String.valueOf(i-startDay+1);
+                if(i==selectPosition+1){
+                    textPaint.setColor(selectTextColor);
+                } else if(5==row||6==row){
+                    //week
+                    textPaint.setColor(weekTextColor);
+                } else {
+                    //default
+                    textPaint.setColor(textColor);
+                }
+            } else {
+                //next days
+                textPaint.setColor(textDisableColor);
+                text = String.valueOf(i-startDay-currentDays+1);
+            }
+
+
             int textWidth = (int) textPaint.measureText(text, 0, text.length());
             textPaint.getTextBounds(text,0,text.length(),textRect);
+
 
             canvas.drawText(text,startX+(itemWidth-textWidth)/2,
                     startY+(itemHeight - (textPaint.descent() + textPaint.ascent())) / 2,textPaint);
@@ -219,8 +231,7 @@ public class CalendarView extends View {
     private void drawDivide(Canvas canvas,int column) {
         int width = getWidth();
         int height = getHeight();
-        int itemWidth=width/WEEK_DAY_COUNT;
-        int itemHeight=height/column;
+        float itemWidth=width*1.0f/WEEK_DAY_COUNT;
         //draw horizontal divide
         for(int i=1;i<column;i++){
             canvas.drawLine(0,itemHeight*i,width,itemHeight*i,dividePaint);
@@ -247,16 +258,52 @@ public class CalendarView extends View {
         if(divideGravity==(divideGravity|BOTTOM)){
             canvas.drawLine(0,height-start,width,height-start,dividePaint);
         }
+        //draw touch rect
+        if(null!=touchRect){
+            canvas.drawRect(touchRect,dividePaint);
+        }
     }
 
-    private int getPosition(int x,int y){
-        return -1;
+    private RectF getSelectRect(float x,float y){
+        float itemWidth=getWidth()*1.0f/WEEK_DAY_COUNT;
+        int row= (int) (y/itemHeight);
+        int column= (int) (x/itemWidth);
+        this.selectPosition=row*WEEK_DAY_COUNT+column;
+        Log.e(TAG,"position:"+selectPosition);
+        return new RectF(column*itemWidth,row*itemHeight,(column+1)*itemWidth,(row+1)*itemHeight);
+    }
+
+    private boolean isInWindowRect(float x, float y) {
+        int width = getWidth();
+        int height = getHeight();
+        return 0<=x&&x<=width&&0<=y&&y<=height;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int action = event.getActionMasked();
-
-        return super.onTouchEvent(event);
+        int action = event.getAction();
+        float x = event.getX();
+        float y =  event.getY();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                touchRect=getSelectRect(x,y);
+                invalidate();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                final RectF rect = getSelectRect(x, y);
+                if(isInWindowRect(x,y)&&!touchRect.equals(rect)){
+                    //start new rect animator
+                    touchRect = rect;
+                    invalidate();
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                break;
+        }
+        return true;
     }
+
+
 }

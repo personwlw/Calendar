@@ -8,6 +8,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+
+import com.quant.calendar.CalendarDay;
+import com.quant.calendar.CalendarView;
+
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,12 +24,27 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        final TextView calendarInfo= (TextView) findViewById(R.id.tv_calendar_info);
+        final CalendarView calendarView= (CalendarView) findViewById(R.id.calendar_view);
+        final CalendarDay calendarDay = calendarView.getCalendarDay();
+        final Calendar calendar=Calendar.getInstance();
+        calendar.set(calendarDay.year,calendarDay.month,1);
+        calendarInfo.setText(calendarView.getCalendarDay().toString());
+        findViewById(R.id.btn_previous).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                calendar.add(Calendar.MONTH,-1);
+                calendarView.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
+                calendarInfo.setText(calendarView.getCalendarDay().toString());
+            }
+        });
+
+        findViewById(R.id.btn_next).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                calendar.add(Calendar.MONTH,1);
+                calendarView.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
+                calendarInfo.setText(calendarView.getCalendarDay().toString());
             }
         });
     }

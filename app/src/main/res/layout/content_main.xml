@@ -10,15 +10,85 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main" tools:context=".MainActivity">
 
-    <TextView android:text="Hello World!" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <com.quant.calendar.CalendarView
+    <TextView
+        android:id="@+id/tv_calendar_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cv_itemHeight="60dp"
+        android:gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="7"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_column="0"
+            android:text="一"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_column="1"
+            android:text="二"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_column="2"
+            android:text="三"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_column="3"
+            android:text="四"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_column="4"
+            android:text="五"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_column="5"
+            android:text="六"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_column="6"
+            android:text="日"/>
+    </LinearLayout>
+
+
+
+    <com.quant.calendar.CalendarView
+        android:id="@+id/calendar_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cv_itemHeight="auto"
         app:cv_itemDivideColor="@color/colorPrimary"
         app:cv_itemDivideSize="6dp"
         app:cv_itemTextSize="15sp"
+        app:cv_itemWeekColor="@color/colorPrimaryDark"
         app:cv_divideGravity="left|right|top|bottom"/>
+
+
 </LinearLayout>
