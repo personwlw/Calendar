@@ -11,6 +11,7 @@
         <attr name="cv_itemSelectColor" format="color"/>
         <attr name="cv_itemDisableColor" format="color"/>
         <attr name="cv_itemDivideColor" format="color"/>
+        <attr name="cv_itemPadding" format="dimension"/>
         <attr name="cv_itemDivideSize" format="dimension"/>
         <attr name="cv_divideGravity" >
             <flag name="left" value="0x01"/>

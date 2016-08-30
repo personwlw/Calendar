@@ -20,7 +20,7 @@ public class CalendarDay implements Cloneable {
         calendar.setTimeInMillis(timeMillis);
         year = calendar.get(Calendar.YEAR);
         month = calendar.get(Calendar.MONTH);
-        day = calendar.get(Calendar.DAY_OF_MONTH);
+        day = calendar.get(Calendar.DAY_OF_MONTH)-1;
     }
 
     public CalendarDay(CalendarDay calendarDay) {

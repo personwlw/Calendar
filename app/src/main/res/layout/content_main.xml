@@ -87,6 +87,7 @@
         app:cv_itemDivideColor="@color/colorPrimary"
         app:cv_itemDivideSize="6dp"
         app:cv_itemTextSize="15sp"
+        app:cv_itemPadding="6dp"
         app:cv_itemWeekColor="@color/colorPrimaryDark"
         app:cv_divideGravity="left|right|top|bottom"/>
 
