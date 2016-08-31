@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -44,6 +45,14 @@ public class CalendarDay implements Cloneable, Parcelable {
         year = calendar.get(Calendar.YEAR);
         month = calendar.get(Calendar.MONTH);
         day = calendar.get(Calendar.DAY_OF_MONTH);
+    }
+
+    public int compare(CalendarDay calendarDay){
+        Calendar calendar1 = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
+        Calendar calendar2 = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
+        calendar1.set(year,month,day);
+        calendar2.set(calendarDay.year,calendarDay.month,calendarDay.day);
+        return (int) ((calendar1.getTimeInMillis()-calendar2.getTimeInMillis())/1000/60/60/24);
     }
 
     public void set(int year, int month, int day) {

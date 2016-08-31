@@ -15,6 +15,7 @@
         <attr name="cv_itemDisableTextColor" format="color"/>
         <attr name="cv_itemDivideColor" format="color"/>
         <attr name="cv_itemPadding" format="dimension"/>
+        <attr name="cv_itemSelectTabColor" format="color"/>
         <attr name="cv_itemDivideSize" format="dimension"/>
         <attr name="cv_itemSelectRoundRadii" format="dimension"/>
         <attr name="cv_divideGravity" >

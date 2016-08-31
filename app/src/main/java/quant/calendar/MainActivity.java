@@ -17,7 +17,7 @@ import java.util.TimeZone;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-
+    private boolean startAnim;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,10 +79,12 @@ public class MainActivity extends AppCompatActivity {
                     calendarView1.clearCalendarInfo();
                     calendarView2.clearCalendarInfo();
                     calendarView2.clearSelectCalendar();
+                    animatorCancel(calendarInfo2,calendarView2);
                 } else if(null!=calendarDay1&&null != calendarDay2) {
                     calendarView2.setSelectCalendarDay(calendarDay1);
                     calendarView1.addCalendarInfo(calendarDay2, "离店");
                 } else if(null!=calendarDay1){
+                    startAnim=true;
                     calendarView2.setSelectCalendarDay(calendarDay1);
                     calendarView1.addCalendarInfo(calendarDay1, "入住");
                 }
@@ -95,7 +97,13 @@ public class MainActivity extends AppCompatActivity {
                     calendarView1.clearCalendarInfo();
                     calendarView2.clearCalendarInfo();
                     calendarView1.clearSelectCalendar();
+                    animatorCancel(calendarInfo2,calendarView2);
                 } else if(null!=calendarDay1&&null!=calendarDay2){
+                    if(startAnim){
+                        int height = calendarInfo2.getHeight();
+                        calendarInfo2.animate().alpha(0f).translationY(-height);
+                        calendarView2.animate().translationY(-height-calendarView2.getItemHeight());
+                    }
                     calendarView1.setSelectCalendarDay(calendarDay2);
                     calendarView2.addCalendarInfo(calendarDay2, "离店");
                 } else if(null!=calendarDay1){
@@ -104,6 +112,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void animatorCancel(View calendarInfo,View calendarView) {
+        if(startAnim){
+            startAnim=false;
+            calendarInfo.animate().alpha(1f).translationY(0);
+            calendarView.animate().translationY(0);
+        }
     }
 
     @Override
