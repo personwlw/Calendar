@@ -1,13 +1,16 @@
 package com.quant.calendar;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 /**
  * Created by cz on 16/8/29.
  * 日历对象
  */
-public class CalendarDay implements Cloneable {
+public class CalendarDay implements Cloneable, Parcelable {
     public int year;
     public int month;
     public int day;
@@ -16,11 +19,11 @@ public class CalendarDay implements Cloneable {
     }
 
     public CalendarDay(long timeMillis) {
-        GregorianCalendar calendar = new GregorianCalendar();
+        Calendar calendar=Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
         calendar.setTimeInMillis(timeMillis);
         year = calendar.get(Calendar.YEAR);
         month = calendar.get(Calendar.MONTH);
-        day = calendar.get(Calendar.DAY_OF_MONTH)-1;
+        day = calendar.get(Calendar.DAY_OF_MONTH);
     }
 
     public CalendarDay(CalendarDay calendarDay) {
@@ -36,7 +39,7 @@ public class CalendarDay implements Cloneable {
     }
 
     public void set(long timeMillis) {
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
         calendar.setTimeInMillis(timeMillis);
         year = calendar.get(Calendar.YEAR);
         month = calendar.get(Calendar.MONTH);
@@ -51,7 +54,7 @@ public class CalendarDay implements Cloneable {
 
     @Override
     public int hashCode() {
-        return year * 365 + month * 30 + day;
+        return year * 366 + month * 31 + day;
     }
 
     @Override
@@ -72,4 +75,32 @@ public class CalendarDay implements Cloneable {
     public CalendarDay clone() {
         return new CalendarDay(this);
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(this.year);
+        dest.writeInt(this.month);
+        dest.writeInt(this.day);
+    }
+
+    protected CalendarDay(Parcel in) {
+        this.year = in.readInt();
+        this.month = in.readInt();
+        this.day = in.readInt();
+    }
+
+    public static final Parcelable.Creator<CalendarDay> CREATOR = new Parcelable.Creator<CalendarDay>() {
+        public CalendarDay createFromParcel(Parcel source) {
+            return new CalendarDay(source);
+        }
+
+        public CalendarDay[] newArray(int size) {
+            return new CalendarDay[size];
+        }
+    };
 }

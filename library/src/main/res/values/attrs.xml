@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="CalendarView">
-        <attr name="cv_itemSelectDrawable" format="reference"/>
+        <attr name="cv_itemSelectColor" format="color"/>
         <attr name="cv_itemHeight" format="dimension|enum">
             <enum name="auto" value="0x00"/>
         </attr>
         <attr name="cv_itemTextColor" format="color"/>
         <attr name="cv_itemTextSize" format="dimension"/>
-        <attr name="cv_itemWeekColor" format="color"/>
-        <attr name="cv_itemSelectColor" format="color"/>
-        <attr name="cv_itemDisableColor" format="color"/>
+        <attr name="cv_itemSelectRangeColor" format="color"/>
+        <attr name="cv_itemSelectRangeTextColor" format="color"/>
+        <attr name="cv_itemSelectTextColor" format="color"/>
+        <attr name="cv_itemLabelTextColor" format="color"/>
+        <attr name="cv_itemLabelTextSize" format="dimension"/>
+        <attr name="cv_itemDisableTextColor" format="color"/>
         <attr name="cv_itemDivideColor" format="color"/>
         <attr name="cv_itemPadding" format="dimension"/>
         <attr name="cv_itemDivideSize" format="dimension"/>
+        <attr name="cv_itemSelectRoundRadii" format="dimension"/>
         <attr name="cv_divideGravity" >
-            <flag name="left" value="0x01"/>
-            <flag name="top" value="0x02"/>
-            <flag name="right" value="0x04"/>
-            <flag name="bottom" value="0x08"/>
+            <flag name="none" value="0x01"/>
+            <flag name="left" value="0x02"/>
+            <flag name="top" value="0x04"/>
+            <flag name="right" value="0x08"/>
+            <flag name="bottom" value="0x10"/>
+            <flag name="divide" value="0x20"/>
         </attr>
     </declare-styleable>
 </resources>

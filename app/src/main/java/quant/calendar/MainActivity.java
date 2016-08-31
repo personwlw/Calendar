@@ -12,8 +12,11 @@ import com.quant.calendar.CalendarDay;
 import com.quant.calendar.CalendarView;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,21 +25,36 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final TextView calendarInfo= (TextView) findViewById(R.id.tv_calendar_info);
-        final CalendarView calendarView= (CalendarView) findViewById(R.id.calendar_view);
-        calendarView.addCalendarInfo(2016,8,24,"入住");
-        calendarView.addCalendarInfo(2016,8,28,"离店");
-        calendarView.addTodayInfo("今天");
-        final CalendarDay calendarDay = calendarView.getCalendarDay();
-        final Calendar calendar=Calendar.getInstance();
-        calendar.set(calendarDay.year, calendarDay.month,1);
-        calendarInfo.setText(calendarView.getCalendarDay().toString());
+        final TextView calendarInfo1= (TextView) findViewById(R.id.tv_calendar_info1);
+        final TextView calendarInfo2= (TextView) findViewById(R.id.tv_calendar_info2);
+        final CalendarView calendarView1= (CalendarView) findViewById(R.id.calendar_view1);
+        final CalendarView calendarView2= (CalendarView) findViewById(R.id.calendar_view2);
+        calendarView1.addCalendarInfo(new CalendarDay(2016, 8, 1), "建军节");
+        calendarView1.addCalendarInfo(new CalendarDay(2016, 8, 15), "中秋节");
+
+
+        CalendarDay calendarDay = calendarView1.getCalendarDay();
+        calendarDay.day=1;
+        calendarInfo1.setText(calendarDay.toString());
+        final Calendar calendar=Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
+        calendar.add(Calendar.MONTH, 1);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendarView2.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
+        calendarView2.addCalendarInfo(2016, 8, 2, "建军节");
+        calendarView2.addCalendarInfo(2016, 8, 5, "劳动节");
+        calendarInfo2.setText(calendarView2.getCalendarDay().toString());
+        calendar.add(Calendar.MONTH, -1);
+
         findViewById(R.id.btn_previous).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 calendar.add(Calendar.MONTH, -1);
-                calendarView.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
-                calendarInfo.setText(calendarView.getCalendarDay().toString());
+                calendarView1.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
+                calendarInfo1.setText(calendarView1.getCalendarDay().toString());
+                calendar.add(Calendar.MONTH, 1);
+                calendarView2.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
+                calendarInfo2.setText(calendarView2.getCalendarDay().toString());
+                calendar.add(Calendar.MONTH, -1);
             }
         });
 
@@ -44,8 +62,46 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 calendar.add(Calendar.MONTH, 1);
-                calendarView.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
-                calendarInfo.setText(calendarView.getCalendarDay().toString());
+                calendarView1.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
+                calendarInfo1.setText(calendarView1.getCalendarDay().toString());
+
+                calendar.add(Calendar.MONTH, 1);
+                calendarView2.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
+                calendarInfo2.setText(calendarView2.getCalendarDay().toString());
+                calendar.add(Calendar.MONTH, -1);
+            }
+        });
+
+        calendarView1.setOnCalendarItemClickListener(new CalendarView.OnCalendarItemClickListener() {
+            @Override
+            public void onItemClick(CalendarDay calendarDay1, CalendarDay calendarDay2, boolean cancle) {
+                if(cancle){
+                    calendarView1.clearCalendarInfo();
+                    calendarView2.clearCalendarInfo();
+                    calendarView2.clearSelectCalendar();
+                } else if(null!=calendarDay1&&null != calendarDay2) {
+                    calendarView2.setSelectCalendarDay(calendarDay1);
+                    calendarView1.addCalendarInfo(calendarDay2, "离店");
+                } else if(null!=calendarDay1){
+                    calendarView2.setSelectCalendarDay(calendarDay1);
+                    calendarView1.addCalendarInfo(calendarDay1, "入住");
+                }
+            }
+        });
+        calendarView2.setOnCalendarItemClickListener(new CalendarView.OnCalendarItemClickListener() {
+            @Override
+            public void onItemClick(CalendarDay calendarDay1, CalendarDay calendarDay2, boolean cancle) {
+                if(cancle){
+                    calendarView1.clearCalendarInfo();
+                    calendarView2.clearCalendarInfo();
+                    calendarView1.clearSelectCalendar();
+                } else if(null!=calendarDay1&&null!=calendarDay2){
+                    calendarView1.setSelectCalendarDay(calendarDay2);
+                    calendarView2.addCalendarInfo(calendarDay2, "离店");
+                } else if(null!=calendarDay1){
+                    calendarView1.setSelectCalendarDay(calendarDay1);
+                    calendarView2.addCalendarInfo(calendarDay1, "入住");
+                }
             }
         });
     }
