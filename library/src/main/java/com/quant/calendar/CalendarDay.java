@@ -4,7 +4,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -12,6 +11,7 @@ import java.util.TimeZone;
  * 日历对象
  */
 public class CalendarDay implements Cloneable, Parcelable {
+    private static final String TAG = "CalendarDay";
     public int year;
     public int month;
     public int day;
@@ -48,9 +48,10 @@ public class CalendarDay implements Cloneable, Parcelable {
     }
 
     public int compare(CalendarDay calendarDay){
-        Calendar calendar1 = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
         Calendar calendar2 = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
-        calendar1.set(year,month,day);
+        Calendar calendar1 = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
+        calendar1.setTimeInMillis(calendar2.getTimeInMillis());
+        calendar1.set(year, month, day);
         calendar2.set(calendarDay.year,calendarDay.month,calendarDay.day);
         return (int) ((calendar1.getTimeInMillis()-calendar2.getTimeInMillis())/1000/60/60/24);
     }
@@ -63,7 +64,7 @@ public class CalendarDay implements Cloneable, Parcelable {
 
     @Override
     public int hashCode() {
-        return year * 366 + month * 31 + day;
+        return compare(new CalendarDay(2016,0,1));
     }
 
     @Override

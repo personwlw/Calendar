@@ -29,8 +29,6 @@ public class MainActivity extends AppCompatActivity {
         final TextView calendarInfo2= (TextView) findViewById(R.id.tv_calendar_info2);
         final CalendarView calendarView1= (CalendarView) findViewById(R.id.calendar_view1);
         final CalendarView calendarView2= (CalendarView) findViewById(R.id.calendar_view2);
-        calendarView1.addCalendarInfo(new CalendarDay(2016, 8, 1), "建军节");
-        calendarView1.addCalendarInfo(new CalendarDay(2016, 8, 15), "中秋节");
 
 
         CalendarDay calendarDay = calendarView1.getCalendarDay();
@@ -40,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
         calendar.add(Calendar.MONTH, 1);
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         calendarView2.setCalendarDay(new CalendarDay(calendar.getTimeInMillis()));
-        calendarView2.addCalendarInfo(2016, 8, 2, "建军节");
-        calendarView2.addCalendarInfo(2016, 8, 5, "劳动节");
         calendarInfo2.setText(calendarView2.getCalendarDay().toString());
         calendar.add(Calendar.MONTH, -1);
 

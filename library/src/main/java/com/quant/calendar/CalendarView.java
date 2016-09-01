@@ -1,9 +1,5 @@
 package com.quant.calendar;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -11,15 +7,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.os.Build;
 import android.support.annotation.IntDef;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -34,10 +27,6 @@ import java.util.TimeZone;
 public class CalendarView extends View {
     private static final String TAG = "CalendarView";
 
-    private static final int ANIM_TAB_PRESS_START=1;
-    private static final int ANIM_TAB_PRESS_END=2;
-    private static final int ANIM_RANGE=3;
-    private static final int ANIM_TOUCH=4;
 
     private static final int WEEK_DAY_COUNT=7;
     private static final int MAX_SELECT_DAY =30;
@@ -84,7 +73,6 @@ public class CalendarView extends View {
     private int textColor;
     private float divideSize;
     private int itemHeight;
-    private int maxSelectDay;
     private final String todayValue;
     private int touchPosition;
     private final List<CalendarDay> selectCalendarItems;
@@ -108,11 +96,10 @@ public class CalendarView extends View {
         labelPaint=new TextPaint(Paint.ANTI_ALIAS_FLAG);
         textPaint=new TextPaint(Paint.ANTI_ALIAS_FLAG);
         calendarDay = new CalendarDay(System.currentTimeMillis());
-        calendarToday = new CalendarDay(System.currentTimeMillis());
+        calendarToday = new CalendarDay(2016,8,15);
         calendar= Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
         calendar.setFirstDayOfWeek(calendar.MONDAY);
         calendar.set(calendarDay.year, calendarDay.month, 1);
-        maxSelectDay= MAX_SELECT_DAY;
         todayValue="今天";
 
 
@@ -242,11 +229,6 @@ public class CalendarView extends View {
 
     public void setSelectCalendarDay(CalendarDay newSelectDay){
         this.selectCalendar=newSelectDay;
-//        calendar.set(calendarDay.year,calendarDay.month,1);
-        if(0>newSelectDay.hashCode()-calendarDay.hashCode()){
-            int day = newSelectDay.compare(calendarDay);
-            maxSelectDay=MAX_RANGE_DAY+day+1;
-        }
         this.selectCalendarItems.add(newSelectDay);
         invalidate();
     }
@@ -307,7 +289,7 @@ public class CalendarView extends View {
 
     private int getCalendarColumn() {
         int totalDay= calendar.getActualMaximum(Calendar.DAY_OF_MONTH)+ WEEK_DAY[calendar.get(Calendar.DAY_OF_WEEK)-1]-1;
-        return (0==totalDay%WEEK_DAY_COUNT)?totalDay/WEEK_DAY_COUNT:totalDay/WEEK_DAY_COUNT+1;
+        return (0 ==totalDay%WEEK_DAY_COUNT) ? totalDay / WEEK_DAY_COUNT:totalDay/WEEK_DAY_COUNT+1;
     }
 
 
@@ -315,8 +297,8 @@ public class CalendarView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         int column = getCalendarColumn();
-        drawDivide(canvas,column);
-        drawCalendarText(canvas,column);
+        drawDivide(canvas, column);
+        drawCalendarText(canvas, column);
     }
 
     private void drawCalendarText(Canvas canvas, int totalColumn) {
@@ -327,6 +309,8 @@ public class CalendarView extends View {
         float itemWidth=getWidth()*1.0f/WEEK_DAY_COUNT;
 
         int total=WEEK_DAY_COUNT*totalColumn;
+        int calendarCode=calendarDay.hashCode();
+        int todayCode = calendarToday.hashCode();
         CalendarDay newDay;
         for(int i=1;i<=total;i++,calendar.add(Calendar.DAY_OF_MONTH,1)){
             newDay=new CalendarDay(calendar.getTimeInMillis());
@@ -337,7 +321,7 @@ public class CalendarView extends View {
             String text;
             int state;
             int newDayCode = newDay.hashCode();
-            int calendarCode=calendarDay.hashCode();
+
             if(newDayCode<calendarCode){
                 //previous month
                 state=PREVIOUS_MONTH;
@@ -346,16 +330,16 @@ public class CalendarView extends View {
             } else if(newDayCode>=calendarCode&&newDayCode<calendarCode+monthDays){
                 //current days
                 state=CURRENT_MONTH;
-                if(calendarToday.day==i-startDay){
+                if(todayCode==newDayCode){
                     text=todayValue;
                 } else {
                     text=String.valueOf(newDay.day);
                 }
-                if(calendarToday.hashCode()>newDayCode){
+                if(todayCode>newDayCode){
                     textPaint.setColor(textDisableColor);
-                } else if(calendarToday.hashCode()==newDayCode){
+                } else if(todayCode==newDayCode){
                     textPaint.setColor(itemSelectRangeTextColor);
-                } else if(newDayCode-calendarToday.hashCode()< MAX_SELECT_DAY){
+                } else if(newDayCode-todayCode< MAX_SELECT_DAY){
                     textPaint.setColor(textColor);
                 } else {
                     textPaint.setColor(textDisableColor);
@@ -367,47 +351,44 @@ public class CalendarView extends View {
                 text=String.valueOf(newDay.day);
             }
 
+
             if(-1!=touchPosition&&touchPosition==column*WEEK_DAY_COUNT+row){
-//                canvas.drawCircle(startX+itemWidth/2,startY+itemHeight/2,Math.min(itemWidth,itemHeight)/2*(0.4f+0.6f*fractions[ANIM_TOUCH]),dividePaint);
-                canvas.drawCircle(startX+itemWidth/2,startY+itemHeight/2,Math.min(itemWidth,itemHeight)/2*(fractions[ANIM_TOUCH]),dividePaint);
+                canvas.drawCircle(startX+itemWidth/2,startY+itemHeight/2,Math.min(itemWidth,itemHeight)/2,dividePaint);
             }
 
+
+
             if(CURRENT_MONTH==state){
+//                Log.e(TAG,newDay.toString());
                 //draw touch rect
                 if(!selectCalendarItems.isEmpty()){
                     int index = selectCalendarItems.indexOf(newDay);
                     if(0==index){
                         selectPaint.setColor(itemSelectTabColor);
-                        selectPaint.setAlpha((int) (0xFF*fractions[ANIM_TAB_PRESS_START]));
                         canvas.drawPath(getRoundRectPath(new RectF(itemWidth*row,itemHeight*column,itemWidth*(row+1),itemHeight*(column+1)), itemSelectRoundRadii, 0, itemSelectRoundRadii, 0), selectPaint);
                     } else if(1==index){
                         selectPaint.setColor(itemSelectTabColor);
-                        selectPaint.setAlpha((int) (0xFF*fractions[ANIM_TAB_PRESS_END]));
                         canvas.drawPath(getRoundRectPath(new RectF(itemWidth*row,itemHeight*column,itemWidth*(row+1),itemHeight*(column+1)), 0, itemSelectRoundRadii,0,itemSelectRoundRadii), selectPaint);
                     }
                     int size = selectCalendarItems.size();
                     if(1==size){
                         CalendarDay selectStartDay = selectCalendarItems.get(0);
-                        int startCode = calendarDay.hashCode();
                         int selectCode = selectStartDay.hashCode();
-                        int endCode = startCode+MAX_SELECT_DAY-1;
+                        int endCode = todayCode+MAX_SELECT_DAY;
                         if(endCode-selectCode>MAX_RANGE_DAY){
                             endCode=selectCode+MAX_RANGE_DAY;
                         }
-                        if(newDayCode<selectCode){
-                            textPaint.setColor(textDisableColor);
-                        } else if(newDayCode<endCode){
+                        if(newDayCode>selectCode&&newDayCode<endCode){
                             textPaint.setColor(textColor);
                         } else {
                             textPaint.setColor(textDisableColor);
                         }
-                    } else if(2==size&&CURRENT_MONTH==state){
+                    } else if(2==size){
                         CalendarDay selectStartDay = selectCalendarItems.get(0);
                         CalendarDay selectEndDay = selectCalendarItems.get(1);
                         if(newDayCode>selectStartDay.hashCode()&&newDayCode<selectEndDay.hashCode()){
                             textPaint.setColor(itemSelectRangeTextColor);
                             selectPaint.setColor(itemSelectRangeColor);
-                            selectPaint.setAlpha((int) (0xFF*fractions[ANIM_RANGE]));
                             canvas.drawRect(new RectF(itemWidth*row,itemHeight*column,itemWidth*(row+1),itemHeight*(column+1)),selectPaint);
                         }
                     }
@@ -423,7 +404,7 @@ public class CalendarView extends View {
                     canvas.drawText(text,startX+(itemWidth-textWidth)/2,
                             startY+(itemHeight - (textPaint.descent() + textPaint.ascent())) / 2,textPaint);
                 } else {
-                    textPaint.setColor(itemSelectRangeTextColor);
+                    textPaint.setColor(selectTextColor);
                     canvas.drawText(text,startX+(itemWidth-textWidth)/2,startY+itemHeight/2-itemPadding,textPaint);
 
                     float textInfoWidth=labelPaint.measureText(calendarInfo, 0, calendarInfo.length());
@@ -527,8 +508,8 @@ public class CalendarView extends View {
         float y =  event.getY();
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                touchPosition=getSelectPosition(x,y);
-                startAnimator(ANIM_TOUCH,false,null);
+//                touchPosition=getSelectPosition(x,y);
+//                startAnimator(ANIM_TOUCH,false,null);
 //                RectF touchRect=getSelectRect(x,y);
 //                invalidate();
                 break;
@@ -545,36 +526,30 @@ public class CalendarView extends View {
             case MotionEvent.ACTION_CANCEL:
                 int position = getSelectPosition(x, y);
                 calendar.set(calendarDay.year, calendarDay.month, 1);
-                int startDay = WEEK_DAY[calendar.get(Calendar.DAY_OF_WEEK)-1]-1;
-                int days = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-                startAnimator(ANIM_TOUCH,true,null);
-                if((calendarDay.year==calendarToday.year&&calendarDay.month==calendarToday.month&&position>=calendarToday.day+startDay-1&&position<startDay+days)  ||
-                        (calendarDay.year==calendarToday.year&& calendarToday.month+1==calendarDay.month&& maxSelectDay>=position-1&&position>=startDay)){
+                final CalendarDay calendarDay = getCalendarByPosition(position);
+                int size = selectCalendarItems.size();
+                int todayCode = calendarToday.hashCode();
+                int endCode=todayCode+MAX_SELECT_DAY;
+                int selectCode = calendarDay.hashCode();
+                boolean touchInRect=false;
+                if(0==size){
+                    //点击范围:当天-30
+                    touchInRect=selectCode>=todayCode&&selectCode<endCode;
+                } else if(1==size){
+                    int startCode = selectCalendarItems.get(0).hashCode();
+                    touchInRect=selectCode>=todayCode&&selectCode<endCode&&selectCode-startCode<MAX_RANGE_DAY;
+                } else if(2==size){
+                    touchInRect=true;
+                }
+                if(touchInRect){
                     //同年/同月,日期小于当天,并小于下月初  or 同年/下一月
-                    final CalendarDay calendarDay = getCalendarByPosition(position);
                     if(2== selectCalendarItems.size()){
-                        startAnimator(ANIM_TAB_PRESS_START,true,null);
-                        startAnimator(ANIM_RANGE,true,null);
-                        startAnimator(ANIM_TAB_PRESS_END, true, new Runnable() {
-                            @Override
-                            public void run() {
-                                selectCalendar=null;
-                                selectCalendarItems.clear();
-                                maxSelectDay=MAX_SELECT_DAY;
-                                if(null!=listener){
-                                    listener.onItemClick(null,null,true);
-                                }
-                            }
-                        });
-                    } else if(null==selectCalendar){
-                        startAnimator(ANIM_TAB_PRESS_START,false,null);
-                        int endCode = calendarToday.hashCode()+ MAX_SELECT_DAY;
-                        int selectCode=calendarDay.hashCode();
-                        if(MAX_RANGE_DAY>endCode-selectCode){
-                            maxSelectDay=MAX_SELECT_DAY;
-                        } else {
-                            maxSelectDay=MAX_RANGE_DAY+(position-startDay)+1;
+                        selectCalendar=null;
+                        selectCalendarItems.clear();
+                        if(null!=listener){
+                            listener.onItemClick(null,null,true);
                         }
+                    } else if(null==selectCalendar){
                         selectCalendarItems.clear();
                         selectCalendar=calendarDay;
                         selectCalendarItems.add(calendarDay);
@@ -582,16 +557,11 @@ public class CalendarView extends View {
                             listener.onItemClick(calendarDay,null,false);
                         }
                     } else if(calendarDay.equals(selectCalendar)){
-                        startAnimator(ANIM_TAB_PRESS_START, true, new Runnable() {
-                            @Override
-                            public void run() {
-                                selectCalendarItems.remove(selectCalendar);
-                                selectCalendar=null;
-                                if(null!=listener){
-                                    listener.onItemClick(null,null,true);
-                                }
-                            }
-                        });
+                        selectCalendarItems.remove(selectCalendar);
+                        selectCalendar=null;
+                        if(null!=listener){
+                            listener.onItemClick(null,null,true);
+                        }
                     } else if(0>calendarDay.hashCode()-selectCalendar.hashCode()){
                         Toast.makeText(getContext(), "选择日期异常!", Toast.LENGTH_SHORT).show();
                     } else {
@@ -599,8 +569,6 @@ public class CalendarView extends View {
                         if(null!=listener){
                             listener.onItemClick(selectCalendar,calendarDay,false);
                         }
-                        startAnimator(ANIM_TAB_PRESS_END,false,null);
-                        startAnimator(ANIM_RANGE, false,null);
                     }
                 }
                 invalidate();
@@ -609,28 +577,6 @@ public class CalendarView extends View {
         return true;
     }
 
-    private void startAnimator(final int index, final boolean reverse, final Runnable action){
-        ValueAnimator valueAnimator = ValueAnimator.ofFloat(1.0f);
-        valueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                float fraction = valueAnimator.getAnimatedFraction();
-                fractions[index]=reverse?(1f-fraction):fraction;
-                invalidate();
-            }
-        });
-        valueAnimator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                if(null!=action){
-                    action.run();
-                }
-            }
-        });
-        valueAnimator.start();
-    }
 
     public void setOnCalendarItemClickListener(OnCalendarItemClickListener listener){
         this.listener=listener;
